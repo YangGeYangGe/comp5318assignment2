@@ -13,16 +13,9 @@ from sklearn.metrics import precision_recall_fscore_support
 train_data, train_label = load_mnist("","train")
 test_data,test_label = load_mnist("","t10k")
 
-sc = StandardScaler()
-X_main_std = sc.fit(train_data)
-
-train_data = X_main_std.transform(train_data)
-test_data = X_main_std.transform(test_data)
-
 
 sc = StandardScaler()
 X_main_std = sc.fit(train_data)
-
 train_data = X_main_std.transform(train_data)
 test_data = X_main_std.transform(test_data)
 
@@ -67,30 +60,28 @@ param["subsample"] = 0.8
 param["colsample_bytree"] = 0.8
 param["eval_metric"] = 'merror'
 param['silent'] = 1
-num_round = 5
+num_round = 100
 
 # [2,4,6,10,15]
-depth = 1
+depth = 6
 param['max_depth'] = depth
 
+# cv_test(depth)
+
 dtest = xgb.DMatrix(test_data, label=test_label)
+x_train, x_valid, y_train, y_valid = train_test_split(train_data, train_label, test_size=0.2)
+dtrain = xgb.DMatrix(x_train, label=y_train)
+dval = xgb.DMatrix(x_valid, label=y_valid)
 
-cv_test(depth)
+evallist = [(dtrain, 'train'),(dval, 'validation')]
 
+early_stopping = 5
+time1 = time.time()
+bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=early_stopping)
+pred = bst.predict(dtest)
+time2 = time.time()
 
-# x_train, x_valid, y_train, y_valid = train_test_split(train_data, train_label, test_size=0.2)
-# dtrain = xgb.DMatrix(x_train, label=y_train)
-# dval = xgb.DMatrix(x_valid, label=y_valid)
-
-# evallist = [(dtrain, 'train'),(dval, 'validation')]
-
-# early_stopping = 5
-# time1 = time.time()
-# bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=early_stopping)
-# pred = bst.predict(dtest)
-# time2 = time.time()
-
-# acc_rate = np.sum(pred == test_label) / test_label.shape[0]
-# print('Test accuracy using softmax = {}'.format(acc_rate))
-# runtime = time2-time1
-# print(runtime," seconds")
+acc_rate = np.sum(pred == test_label) / test_label.shape[0]
+print('Test accuracy using softmax = {}'.format(acc_rate))
+runtime = time2-time1
+print(runtime," seconds")
