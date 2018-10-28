@@ -53,6 +53,9 @@ def cv_test(max_depth = 2):
 param = {}
 param['tree_method'] = 'approx'
 # param['tree_method'] = 'exact'
+# param['tree_method'] = 'gpu_exact'
+
+
 param['objective'] = 'multi:softmax'
 param['eta'] = 0.3
 param['num_class'] = 10
